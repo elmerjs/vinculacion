@@ -417,13 +417,13 @@ const cargarDesdeAnterior = async () => {
 
           <div className="controls-buttons">
             <button 
-  onClick={cargarDesdeAnterior} 
-  className="btn-primary"
-  disabled={!puedeCargarAnterior}
->
-  <span className="btn-icon">🔄</span> Cargar desde período anterior
-</button>
-           
+              onClick={cargarDesdeAnterior} 
+              className="btn-primary"
+              disabled={!puedeCargarAnterior}
+            >
+              <span className="btn-icon">🔄</span> Cargar desde período anterior
+            </button>
+                      
           </div>
         </div>
 
@@ -450,11 +450,28 @@ const cargarDesdeAnterior = async () => {
                 {tabActiva === 'ocasionales' ? (
                   <div className="solicitudes-section">
                     {estadoEnvio.ocasional !== 'ce' && (
-                      <div className="button-new-solicitud">
+                      
+                      
+                      
+                      
+                     
+                      <div className="controls-buttons">
+            <button 
+              onClick={cargarDesdeAnterior} 
+              className="btn-primary"
+              disabled={!puedeCargarAnterior}
+            >
+              <span className="btn-icon">🔄</span> Cargar desde período anterior
+            </button>
+             <div className="button-new-solicitud">
                           <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
                             <span className="btn-icon">+</span> Nueva Solicitud
                         </button>
                       </div>
+
+                      
+          </div>
+
                     )}
                     {solicitudesOcasionales.length === 0 ? (
                       <div className="empty-state">
@@ -529,11 +546,28 @@ const cargarDesdeAnterior = async () => {
                 ) : (
                   <div className="solicitudes-section">
                     {estadoEnvio.catedra !== 'ce' && (
-                      <div className="button-new-solicitud">
+                      
+                      
+                      
+  <div className="controls-buttons">
+            <button 
+              onClick={cargarDesdeAnterior} 
+              className="btn-primary"
+              disabled={!puedeCargarAnterior}
+            >
+              <span className="btn-icon">🔄</span> Cargar desde período anterior
+            </button>
+               <div className="button-new-solicitud">
           <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
                           <span className="btn-icon"> + </span> Nueva Solicitud
                         </button>
-                      </div>
+                      </div>        
+          </div>
+
+                      
+                      
+                      
+                     
                     )}
                     {solicitudesCatedra.length === 0 ? (
                       <div className="empty-state">
