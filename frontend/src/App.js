@@ -1,0 +1,610 @@
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import Login from './components/Login'; // Nuevo componente
+import ModalEdicion from './components/ModalEdicion';
+
+import { FaEdit, FaTrashAlt, FaRegSquare, FaDownload, FaFileAlt } from 'react-icons/fa'; // Asegúrate de tener estas importaciones
+
+function App() {
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [solicitudesOcasionales, setSolicitudesOcasionales] = useState([]);
+  const [solicitudesCatedra, setSolicitudesCatedra] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [departamentoId, setDepartamentoId] = useState(null); // Ahora se setea según el usuario
+  const [tabActiva, setTabActiva] = useState('ocasionales');
+  const [estadoEnvio, setEstadoEnvio] = useState({
+    total: 0,
+    ocasional: 0,
+    catedra: 0,
+    fechaUltimoEnvio: null
+  });
+  const [puedeCargarAnterior, setPuedeCargarAnterior] = useState(false);
+
+  const [solicitudAEditar, setSolicitudAEditar] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // ESTADO DE AUTENTICACIÓN
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Verificar si hay sesión al cargar
+  useEffect(() => {
+    const savedUser = sessionStorage.getItem('user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      setIsAuthenticated(true);
+      setDepartamentoId(userData.fk_depto_user); // Setear departamento según usuario
+    }
+    setLoading(false);
+  }, []);
+//funicon para verificar si hay datos
+const verificarPuedeCargarAnterior = async () => {
+  try {
+    const response = await fetch(
+      `http://192.168.42.175:5000/api/solicitudes/count/${departamentoId}?periodo=${periodoSeleccionado}`
+    );
+    const data = await response.json();
+    setPuedeCargarAnterior(data.total === 0);
+  } catch (error) {
+    console.error('Error verificando solicitudes:', error);
+    setPuedeCargarAnterior(false);
+  }
+};
+
+// Función para abrir el modal de edición
+const handleEditClick = (solicitud) => {
+    setSolicitudAEditar(solicitud);
+    setIsModalOpen(true);
+};
+
+// Función para cerrar el modal
+const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSolicitudAEditar(null);
+};
+
+// Función para manejar la actualización
+const handleUpdate = async (id, updatedData) => {
+    try {
+        const response = await fetch(`http://192.168.42.175:5000/api/solicitudes/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData),
+        });
+        const data = await response.json();
+        if (data.success) {
+            alert(data.message);
+            cargarSolicitudes(); // Recargar la lista de solicitudes
+            handleCloseModal();
+        } else {
+            alert(`Error al actualizar: ${data.message}`);
+        }
+    } catch (error) {
+        console.error('Error al actualizar solicitud:', error);
+        alert('Error de conexión con el servidor.');
+    }
+};
+  // Función para generar períodos (MANTENIDA)
+  const generarPeriodos = () => {
+    const periodos = [];
+    const fecha = new Date();
+    const añoActual = fecha.getFullYear();
+    const mesActual = fecha.getMonth() + 1;
+    
+    const semestreActual = mesActual <= 6 ? 1 : 2;
+    periodos.push(`${añoActual}-${semestreActual}`);
+    
+    if (semestreActual === 1) {
+      periodos.push(`${añoActual}-2`);
+    } else {
+      periodos.push(`${añoActual + 1}-1`);
+    }
+    
+    if (semestreActual === 1) {
+      periodos.push(`${añoActual - 1}-2`);
+    } else {
+      periodos.push(`${añoActual}-1`);
+    }
+    
+    if (semestreActual === 1) {
+      periodos.push(`${añoActual - 1}-1`);
+    } else {
+      periodos.push(`${añoActual - 1}-2`);
+    }
+    
+    return periodos;
+  };
+
+  const periodos = generarPeriodos();
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState(periodos[0]);
+
+  // Cargar solicitudes SOLO si está autenticado y tiene departamento
+useEffect(() => {
+  if (isAuthenticated && departamentoId) {
+    cargarSolicitudes();
+    cargarEstadoEnvio(); // <-- aquí llamas la nueva función
+    verificarPuedeCargarAnterior(); // <-- aquí
+
+  }
+}, [periodoSeleccionado, departamentoId, isAuthenticated]);
+
+
+  // FUNCIONES EXISTENTES (MANTENIDAS)
+  const cargarSolicitudes = async () => {
+  try {
+    setLoading(true);
+    // 1. Cargar solicitudes
+    const solicitudesResponse = await fetch(
+      `http://192.168.42.175:5000/api/solicitudes/depto/${departamentoId}?periodo=${periodoSeleccionado}`
+    );
+    const solicitudesData = await solicitudesResponse.json();
+    const ocasionales = solicitudesData.solicitudes.filter(sol => sol.tipo_docente === 'Ocasional');
+    const catedra = solicitudesData.solicitudes.filter(sol => sol.tipo_docente === 'Catedra');
+
+    setSolicitudes(solicitudesData.solicitudes);
+    setSolicitudesOcasionales(ocasionales);
+    setSolicitudesCatedra(catedra);
+
+    // 2. Cargar estado de envío
+    const estadoResponse = await fetch(
+      `http://192.168.42.175:5000/api/depto-periodo-estado/${departamentoId}?periodo=${periodoSeleccionado}`
+    );
+    const estadoData = await estadoResponse.json();
+    setEstadoEnvio(estadoData); // Actualizar el estado de envío
+
+  } catch (error) {
+    console.error('Error cargando datos:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const cargarEstadoEnvio = async () => {
+  try {
+    const response = await fetch(
+      `http://192.168.42.175:5000/api/departamento/estado-envio/${departamentoId}?periodo=${periodoSeleccionado}`
+    );
+    const data = await response.json();
+    setEstadoEnvio(data);
+  } catch (error) {
+    console.error('Error cargando estado de envío:', error);
+  }
+};
+const eliminarSolicitud = async (id) => {
+  if (!window.confirm('¿Seguro que deseas eliminar esta solicitud?')) return;
+
+  try {
+    const response = await fetch(`http://192.168.42.175:5000/api/solicitudes/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      alert(data.message);
+
+      // Recarga la tabla
+      cargarSolicitudes();
+
+      // **Verifica si ya quedó vacío para habilitar el botón**
+      verificarPuedeCargarAnterior();
+
+    } else {
+      alert(data.message || 'No se pudo eliminar la solicitud');
+    }
+  } catch (error) {
+    console.error('Error eliminando solicitud:', error);
+    alert('Error eliminando solicitud');
+  }
+};
+
+
+const cargarDesdeAnterior = async () => {
+  try {
+    const [año, semestre] = periodoSeleccionado.split('-');
+    let periodoAnterior;
+    
+    if (semestre === '1') {
+      periodoAnterior = `${parseInt(año) - 1}-2`;
+    } else {
+      periodoAnterior = `${año}-1`;
+    }
+    
+    const response = await fetch('http://192.168.42.175:5000/api/solicitudes/cargar-desde-anterior', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        departamento_id: departamentoId,
+        periodo_actual: periodoSeleccionado,
+        periodo_anterior: periodoAnterior
+      })
+    });
+    
+    const data = await response.json();
+    alert(data.message);
+
+    // Recarga los datos
+    cargarSolicitudes();
+
+    // Aquí actualizas el estado para desactivar el botón inmediatamente
+    setPuedeCargarAnterior(false);
+
+    // Y además, verificas el conteo en la base por si acaso
+    verificarPuedeCargarAnterior();
+
+  } catch (error) {
+    console.error('Error cargando desde período anterior:', error);
+    alert('Error: ' + error.message);
+  }
+};
+
+
+  const enviarAFacultad = async () => {
+    try {
+      const response = await fetch('http://192.168.42.175:5000/api/departamento/enviar-facultad', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          departamento_id: departamentoId,
+          periodo: periodoSeleccionado
+        })
+      });
+      
+      const data = await response.json();
+      alert(data.message);
+    } catch (error) {
+      console.error('Error enviando a facultad:', error);
+      alert('Error: ' + error.message);
+    }
+  };
+
+  // FUNCIONES DE LOGIN (NUEVAS)
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    setDepartamentoId(userData.fk_depto_user); // Setear departamento del usuario
+    sessionStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    setDepartamentoId(null);
+    sessionStorage.removeItem('user');
+  };
+
+  // RENDER PRINCIPAL
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  if (loading) {
+    return (
+      <div className="App">
+        <header className="header-unicauca">
+          <div className="container">
+            <img 
+              src={process.env.PUBLIC_URL + '/assets/logos/logo-unicauca-vertical.png'} 
+              alt="Logo Universidad del Cauca" 
+              className="logo-unicauca" 
+            />
+            <h1 className="header-title">Gestión de Docentes - Vinculación</h1>
+          </div>
+        </header>
+        <div className="loading">Cargando solicitudes...</div>
+      </div>
+    );
+  }
+
+  // INTERFAZ ORIGINAL (CON HEADER MODIFICADO)
+  return (
+    <div className="App">
+      {/* HEADER MODIFICADO CON INFO DE USUARIO */}
+      <header className="header-unicauca">
+        <div className="container">
+          <img 
+            src={process.env.PUBLIC_URL + '/assets/logos/logo-unicauca-vertical.png'} 
+            alt="Logo Universidad del Cauca" 
+            className="logo-unicauca" 
+          />
+          <div className="header-titles">
+            <h1 className="header-title">Gestión de Docentes - Vinculación</h1>
+            <h2 className="header-subtitle">Jefe de Departamento:  {user?.u_nombre_en_cargo || 'Artes Plásticas'}</h2>
+          </div>
+          <div className="user-info">
+            <span>Usuario: {user?.Name}</span>
+            <button onClick={handleLogout} className="btn-logout">
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* TODO EL RESTO DEL CÓDIGO ORIGINAL SE MANTIENE */}
+      <main className="container main-container">
+        {/* CONTROLES SUPERIORES */}
+        <div className="controls-panel">
+          <div className="periodo-selector">
+            <label>Período Académico: </label>
+            <select 
+              value={periodoSeleccionado} 
+              onChange={(e) => setPeriodoSeleccionado(e.target.value)}
+              className="select-periodo"
+            >
+              {periodos.map(periodo => (
+                <option key={periodo} value={periodo}>
+                  {periodo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="controls-buttons">
+            <button 
+  onClick={cargarDesdeAnterior} 
+  className="btn-primary"
+  disabled={!puedeCargarAnterior}
+>
+  <span className="btn-icon">🔄</span> Cargar desde período anterior
+</button>
+            <button className="btn-secondary">
+              <span className="btn-icon">➕</span> Nueva Solicitud
+            </button>
+          </div>
+        </div>
+
+        {/* CONTENIDO PRINCIPAL - MANTENIDO */}
+        <div className="content-layout">
+          <div className="left-column">
+            <div className="tabs-container">
+              <div className="tabs-header">
+                <button
+                  className={`tab ${tabActiva === 'ocasionales' ? 'active' : ''}`}
+                  onClick={() => setTabActiva('ocasionales')}
+                >
+                  Docentes Ocasionales <span className="badge-count">{solicitudesOcasionales.length}</span>
+                </button>
+                <button
+                  className={`tab ${tabActiva === 'catedra' ? 'active' : ''}`}
+                  onClick={() => setTabActiva('catedra')}
+                >
+                  Docentes Cátedra <span className="badge-count">{solicitudesCatedra.length}</span>
+                </button>
+              </div>
+
+              <div className="tab-content">
+                {tabActiva === 'ocasionales' ? (
+                  <div className="solicitudes-section">
+                    {estadoEnvio.ocasional !== 'ce' && (
+                      <div className="button-new-solicitud">
+        <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
+                          <span className="btn-icon">+</span> Nueva Solicitud
+                        </button>
+                      </div>
+                    )}
+                    {solicitudesOcasionales.length === 0 ? (
+                      <div className="empty-state">
+                        <p>No hay docentes ocasionales para el período {periodoSeleccionado}</p>
+                      </div>
+                    ) : (
+                      <div className="table-container">
+                        <table className="solicitudes-table">
+                          <thead>
+                            <tr>
+                              <th rowSpan="2">#</th>
+                              <th rowSpan="2">Nombre</th>
+                              <th rowSpan="2">Cédula</th>
+                              <th colSpan="2">Dedicación</th>
+                              <th colSpan="2">Hoja de Vida</th>
+                              {estadoEnvio.ocasional === 'ce' && (
+                                <>
+                                  <th rowSpan="2">Visado</th>
+                                  <th rowSpan="2">FOR.45</th>
+                                </>
+                              )}
+                              {estadoEnvio.ocasional !== 'ce' && (
+                                <th rowSpan="2">Acciones</th>
+                              )}
+                            </tr>
+                            <tr>
+                              <th>POP</th>
+                              <th>REG</th>
+                              <th>Anexa (Nuevo)</th>
+                              <th>Actualiza (Antiguo)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {solicitudesOcasionales.map((sol, index) => (
+                              <tr key={sol.id_solicitud}>
+                                <td>{index + 1}</td>
+                                <td className="celda-compacta">{sol.nombre}</td>
+                                <td className="celda-compacta">{sol.cedula}</td>
+                                <td className="celda-compacta">{sol.tipo_dedicacion || '-'}</td>
+                                <td className="celda-compacta">{sol.tipo_dedicacion_r || '-'}</td>
+                                <td className="celda-compacta">{sol.anexa_hv_docente_nuevo === 'si' ? '✅' : '❌'}</td>
+                                <td className="celda-compacta">{sol.actualiza_hv_antiguo === 'si' ? '✅' : '❌'}</td>
+                                {estadoEnvio.ocasional === 'ce' && (
+                                  <>
+                                    <td className="celda-compacta"><FaRegSquare /></td>
+                                    <td className="celda-compacta"><FaDownload /></td>
+                                  </>
+                                )}
+                                {estadoEnvio.ocasional !== 'ce' && (
+                                  <td>
+                                    <div className="acciones-compactas">
+                                      <button className="btn-edit btn-compact" title="Editar" onClick={() => handleEditClick(sol)}>
+                                        <FaEdit />
+                                      </button>
+                                      <button
+                                        className="btn-delete btn-compact"
+                                        title="Eliminar"
+                                        onClick={() => eliminarSolicitud(sol.id_solicitud)}
+                                      >
+                                        <FaTrashAlt />
+                                      </button>
+                                    </div>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="solicitudes-section">
+                    {estadoEnvio.catedra !== 'ce' && (
+                      <div className="button-new-solicitud">
+          <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
+                          <span className="btn-icon"> + </span> Nueva Solicitud
+                        </button>
+                      </div>
+                    )}
+                    {solicitudesCatedra.length === 0 ? (
+                      <div className="empty-state">
+                        <p>No hay docentes cátedra para el período {periodoSeleccionado}</p>
+                      </div>
+                    ) : (
+                      <div className="table-container">
+                        <table className="solicitudes-table">
+                          <thead>
+                            <tr>
+                              <th rowSpan="2">#</th>
+                              <th rowSpan="2">Nombre</th>
+                              <th rowSpan="2">Cédula</th>
+                              <th colSpan="2">Horas</th>
+                              <th colSpan="2">Hoja de Vida</th>
+                              {estadoEnvio.catedra === 'ce' && (
+                                <>
+                                  <th rowSpan="2">Visado</th>
+                                  <th rowSpan="2">FOR.45</th>
+                                </>
+                              )}
+                              {estadoEnvio.catedra !== 'ce' && (
+                                <th rowSpan="2">Acciones</th>
+                              )}
+                            </tr>
+                            <tr>
+                              <th>POP</th>
+                              <th>REG</th>
+                              <th>Anexa (Nuevo)</th>
+                              <th>Actualiza (Antiguo)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {solicitudesCatedra.map((sol, index) => (
+                              <tr key={sol.id_solicitud}>
+                                <td>{index + 1}</td>
+                                <td>{sol.nombre}</td>
+                                <td>{sol.cedula}</td>
+                                <td>{sol.horas || '-'}</td>
+                                <td>{sol.horas_r || '-'}</td>
+                                <td className="celda-compacta">{sol.anexa_hv_docente_nuevo === 'si' ? '✅' : '❌'}</td>
+                                <td className="celda-compacta">{sol.actualiza_hv_antiguo === 'si' ? '✅' : '❌'}</td>
+                                {estadoEnvio.catedra === 'ce' && (
+                                  <>
+                                    <td className="celda-compacta"><FaRegSquare /></td>
+                                    <td className="celda-compacta"><FaDownload /></td>
+                                  </>
+                                )}
+                                {estadoEnvio.catedra !== 'ce' && (
+                                  <td>
+                                    <div className="acciones-compactas">
+                                      <button className="btn-edit btn-compact" title="Editar" onClick={() => handleEditClick(sol)}>
+                                        <FaEdit />
+                                      </button>
+                                      <button
+                                        className="btn-delete btn-compact"
+                                        title="Eliminar"
+                                        onClick={() => eliminarSolicitud(sol.id_solicitud)}
+                                      >
+                                        <FaTrashAlt />
+                                      </button>
+                                    </div>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="right-column">
+            <div className="envio-panel">
+              <h3>Envío a Facultad</h3>
+              
+              <div className="estado-envio">
+                <div className="estado-item">
+                  <span className="estado-label">Docentes Ocasionales:</span>
+                  <span className={`estado-badge ${estadoEnvio.ocasional ? 'completado' : 'pendiente'}`}>
+                    {estadoEnvio.ocasional ? 'Completado' : 'Pendiente'}
+                  </span>
+                </div>
+                
+                <div className="estado-item">
+                  <span className="estado-label">Docentes Cátedra:</span>
+                  <span className={`estado-badge ${estadoEnvio.catedra ? 'completado' : 'pendiente'}`}>
+                    {estadoEnvio.catedra ? 'Completado' : 'Pendiente'}
+                  </span>
+                </div>
+                
+                <div className="estado-item">
+                  <span className="estado-label">Estado General:</span>
+                  <span className={`estado-badge ${estadoEnvio.total ? 'enviado' : 'pendiente'}`}>
+                    {estadoEnvio.total ? 'Enviado' : 'Pendiente'}
+                  </span>
+                </div>
+                
+                {estadoEnvio.fechaUltimoEnvio && (
+                  <div className="ultimo-envio">
+                    <p>Último envío: {new Date(estadoEnvio.fechaUltimoEnvio).toLocaleDateString()}</p>
+                  </div>
+                )}
+              </div>
+              
+              <button 
+                onClick={enviarAFacultad} 
+                className="btn-enviar-facultad"
+                disabled={estadoEnvio.total === 1}
+              >
+                {estadoEnvio.total ? '✅ Ya enviado' : '📤 Enviar a Facultad'}
+              </button>
+              
+              <div className="info-adicional">
+                <h4>Información importante:</h4>
+                <ul>
+                  <li>Verifique que todos los datos estén correctos antes de enviar</li>
+                  <li>Después de enviar, no podrá realizar modificaciones</li>
+                  <li>El envío será revisado por la Facultad</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+ <ModalEdicion
+      isOpen={isModalOpen}
+      onClose={handleCloseModal}
+      solicitud={solicitudAEditar}
+      onUpdate={handleUpdate}
+    />
+      <footer className="footer-unicauca">
+        <p>Universidad del Cauca - #PatrimonioDeTodos</p>
+
+        
+      </footer>
+    </div>
+  );
+}
+
+export default App;

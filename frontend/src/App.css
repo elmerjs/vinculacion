@@ -1,0 +1,1206 @@
+/* ===== IDENTIDAD VISUAL UNICAUCA ===== */
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&family=Open+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Colores institucionales Unicauca */
+  --unicauca-azul: #001282;
+  --unicauca-rojo: #AD0000;
+  --unicauca-azul-claro: #002A9E;
+  --unicauca-complementario: #4C19AF;
+  
+  /* Estados (mantenemos algunos tuyos pero adaptamos) */
+  --estado-pendiente: #FF9800;
+  --estado-completado: #28a745;  /* Mantenemos tu verde */
+  --estado-enviado: #2196F3;
+  --estado-error: #dc3545;       /* Mantenemos tu rojo */
+    --color-accion-nuevo: #28a745; /* Verde para "Nueva Solicitud" */
+  --color-accion-nuevo-hover: #218838; /* Verde para el efecto hover */
+  /* Tipografía institucional */
+  --font-titulos: 'Open Sans', sans-serif;
+  --font-texto: 'Open Sans', sans-serif;
+}
+
+/* ===== ESTILOS GENERALES ACTUALIZADOS ===== */
+.App {
+  text-align: center;
+  padding: 20px;
+  font-family: var(--font-texto);  /* Cambiamos a Open Sans */
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.App-header {
+  background-color: var(--unicauca-azul);  /* Azul Unicauca */
+  padding: 20px;
+  color: white;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.App-header h1 {
+  font-family: var(--font-titulos);  /* EB Garamond para títulos */
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ===== CONTROLES ACTUALIZADOS ===== */
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.periodo-selector {
+  margin-bottom: 10px;
+}
+
+.periodo-selector label {
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 16px;
+  color: var(--unicauca-azul);  /* Azul Unicauca */
+}
+
+.select-periodo {
+  padding: 10px 15px;
+  border: 2px solid var(--unicauca-azul);  /* Azul Unicauca */
+  border-radius: 6px;
+  font-size: 16px;
+  background-color: white;
+  cursor: pointer;
+  font-family: var(--font-texto);
+}
+
+.select-periodo:focus {
+  outline: none;
+  border-color: var(--unicauca-azul-claro);
+  box-shadow: 0 0 0 3px rgba(0, 18, 130, 0.1);
+}
+
+/* ===== BOTONES ACTUALIZADOS ===== */
+.buttons-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background-color: var(--unicauca-azul);  /* Azul Unicauca */
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  font-family: var(--font-texto);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: var(--unicauca-azul-claro);  /* Azul más claro */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-secondary {
+  background-color: var(--unicauca-rojo);  /* Rojo Unicauca */
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  font-family: var(--font-texto);
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background-color: #c10000;  /* Rojo más oscuro */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(173, 0, 0, 0.15);
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: black;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 14px;
+  font-family: var(--font-texto);
+}
+
+.btn-edit:hover {
+  background-color: #e0a800;
+}
+
+.btn-delete {
+  background-color: var(--estado-error);
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-texto);
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+/* ===== TABLA ACTUALIZADA ===== */
+.solicitudes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.solicitudes-table th,
+.solicitudes-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  font-family: var(--font-texto);
+}
+
+.solicitudes-table th {
+  background-color: var(--unicauca-azul);  /* Azul Unicauca */
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-family: var(--font-titulos);
+  font-size: 16px;
+}
+
+.solicitudes-table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.solicitudes-table tr:hover {
+  background-color: #e9ecef;
+  transition: background-color 0.2s;
+}
+
+/* ===== ESTADOS VACÍO/CARGANDO ===== */
+.empty-state {
+  padding: 40px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 2px dashed #dee2e6;
+}
+
+.empty-state p {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #6c757d;
+  font-family: var(--font-texto);
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--unicauca-azul);
+  font-family: var(--font-texto);
+}
+
+/* ===== HEADER UNICAUCA ESPECÍFICO ===== */
+.header-unicauca {
+  background: var(--unicauca-azul);
+  color: white;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-unicauca .container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.logo-unicauca {
+  height: 60px;
+  width: auto;
+}
+
+.header-title {
+  font-family: var(--font-titulos);
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+/* ===== FOOTER UNICAUCA ===== */
+.footer-unicauca {
+  background: var(--unicauca-azul);
+  color: white;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: 3rem;
+  font-family: var(--font-titulos);
+  font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .buttons-container {
+    flex-direction: column;
+  }
+  
+  .solicitudes-table {
+    font-size: 14px;
+  }
+  
+  .solicitudes-table th,
+  .solicitudes-table td {
+    padding: 8px;
+  }
+  
+  .header-unicauca .container {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .logo-unicauca {
+    height: 50px;
+  }
+  
+  .header-title {
+    font-size: 1.4rem;
+  }
+}
+
+/* ===== CLASES PARA NUEVOS COMPONENTES ===== */
+/* (Estas las usarás cuando implementemos el Panel de Control) */
+.panel-control-unicauca {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin: 2rem 0;
+}
+
+.estado-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.card-estado {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--unicauca-azul);
+  text-align: center;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: white;
+}
+/* ===== LAYOUT PRINCIPAL ===== */
+.main-container {
+  padding: 20px 0;
+}
+
+.content-layout {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.left-column {
+  flex: 7; /* 70% */
+}
+
+.right-column {
+  flex: 3; /* 30% */
+}
+
+/* ===== HEADER MEJORADO ===== */
+.header-unicauca .container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-subtitle {
+  font-family: var(--font-texto);
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin: 5px 0 0 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== PANEL DE CONTROLES ===== */
+.controls-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.controls-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-icon {
+  margin-right: 8px;
+}
+
+/* ===== SECCIONES DE SOLICITUDES ===== */
+.solicitudes-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+.solicitudes-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--unicauca-azul);
+  margin-bottom: 15px;
+  font-family: var(--font-titulos);
+}
+
+.badge-count {
+  background: var(--unicauca-azul);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+/* ===== PANEL DE ENVÍO ===== */
+.envio-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 20px;
+}
+
+.envio-panel h3 {
+  color: var(--unicauca-azul);
+  margin-bottom: 15px;
+  font-family: var(--font-titulos);
+  border-bottom: 2px solid var(--unicauca-rojo);
+  padding-bottom: 8px;
+}
+
+.estado-envio {
+  margin-bottom: 20px;
+}
+
+.estado-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.estado-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.estado-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.estado-badge.pendiente {
+  background: var(--estado-pendiente);
+  color: white;
+}
+
+.estado-badge.completado {
+  background: var(--estado-completado);
+  color: white;
+}
+
+.estado-badge.enviado {
+  background: var(--unicauca-azul);
+  color: white;
+}
+
+.ultimo-envio {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #dee2e6;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.btn-enviar-facultad {
+  width: 100%;
+  padding: 12px;
+  background: var(--unicauca-azul);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-bottom: 15px;
+}
+
+.btn-enviar-facultad:hover:not(:disabled) {
+  background: var(--unicauca-azul-claro);
+}
+
+.btn-enviar-facultad:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.info-adicional {
+  background: #e9ecef;
+  padding: 15px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.info-adicional h4 {
+  margin-top: 0;
+  color: var(--unicauca-azul);
+}
+
+.info-adicional ul {
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+
+.info-adicional li {
+  margin-bottom: 5px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .content-layout {
+    flex-direction: column;
+  }
+  
+  .left-column, .right-column {
+    flex: none;
+    width: 100%;
+  }
+  
+  .controls-panel {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .controls-buttons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-unicauca .container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .header-titles {
+    align-items: center;
+  }
+}
+/* ===== SISTEMA DE PESTAÑAS ===== */
+.tabs-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tabs-header {
+  display: flex;
+  border-bottom: 2px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.tab {
+  flex: 1;
+  padding: 15px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: #6c757d;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-texto);
+}
+
+.tab:hover {
+  background: #e9ecef;
+  color: var(--unicauca-azul);
+}
+
+.tab.active {
+  color: var(--unicauca-azul);
+  border-bottom-color: var(--unicauca-azul);
+  background: white;
+}
+
+.tab-content {
+  padding: 0;
+}
+
+.tab-content .solicitudes-section {
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+  padding: 20px;
+}
+
+/* ===== MEJORAS PARA TABLAS ===== */
+.solicitudes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0;
+}
+
+.solicitudes-table th {
+  position: sticky;
+  top: 0;
+  background: var(--unicauca-azul);
+  z-index: 10;
+}
+
+.table-container {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+/* ===== HEADER MEJORADO ===== */
+.header-unicauca .container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-subtitle {
+  font-family: var(--font-texto);
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin: 5px 0 0 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+.main-container {
+  padding: 20px 0;
+}
+
+.content-layout {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.left-column {
+  flex: 7;
+  min-width: 0;
+}
+
+.right-column {
+  flex: 3;
+  min-width: 0;
+}
+
+/* ===== PANEL DE CONTROLES ===== */
+.controls-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.controls-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-icon {
+  margin-right: 8px;
+}
+
+/* ===== PANEL DE ENVÍO ===== */
+.envio-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+.envio-panel h3 {
+  color: var(--unicauca-azul);
+  margin-bottom: 15px;
+  font-family: var(--font-titulos);
+  border-bottom: 2px solid var(--unicauca-rojo);
+  padding-bottom: 8px;
+}
+
+.estado-envio {
+  margin-bottom: 20px;
+}
+
+.estado-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.estado-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.estado-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.estado-badge.pendiente {
+  background: var(--estado-pendiente);
+  color: white;
+}
+
+.estado-badge.completado {
+  background: var(--estado-completado);
+  color: white;
+}
+
+.estado-badge.enviado {
+  background: var(--unicauca-azul);
+  color: white;
+}
+
+.ultimo-envio {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #dee2e6;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.btn-enviar-facultad {
+  width: 100%;
+  padding: 12px;
+  background: var(--unicauca-azul);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-bottom: 15px;
+  font-family: var(--font-texto);
+}
+
+.btn-enviar-facultad:hover:not(:disabled) {
+  background: var(--unicauca-azul-claro);
+}
+
+.btn-enviar-facultad:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.info-adicional {
+  background: #e9ecef;
+  padding: 15px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.info-adicional h4 {
+  margin-top: 0;
+  color: var(--unicauca-azul);
+}
+
+.info-adicional ul {
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+
+.info-adicional li {
+  margin-bottom: 5px;
+}
+
+/* ===== BOTONES Y ESTILOS GENERALES ===== */
+.btn-primary {
+  background-color: var(--unicauca-azul);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  font-family: var(--font-texto);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: var(--unicauca-azul-claro);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-secondary {
+  background-color: var(--unicauca-rojo);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  font-family: var(--font-texto);
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background-color: #c10000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(173, 0, 0, 0.15);
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: black;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+.btn-edit:hover {
+  background-color: #e0a800;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+.empty-state {
+  padding: 40px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 2px dashed #dee2e6;
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #6c757d;
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--unicauca-azul);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .content-layout {
+    flex-direction: column;
+  }
+  
+  .left-column, .right-column {
+    flex: none;
+    width: 100%;
+  }
+  
+  .controls-panel {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .controls-buttons {
+    justify-content: center;
+  }
+  
+  .envio-panel {
+    position: static;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-unicauca .container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .header-titles {
+    align-items: center;
+  }
+  
+  .tabs-header {
+    flex-direction: column;
+  }
+  
+  .tab {
+    padding: 12px;
+  }
+}
+/* ===== TABLAS COMPACTAS ===== */
+.solicitudes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0;
+  font-size: 0.85rem; /* Texto más pequeño */
+}
+
+.solicitudes-table th {
+  position: sticky;
+  top: 0;
+  background: var(--unicauca-azul);
+  z-index: 10;
+  padding: 8px 10px; /* Padding reducido */
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.solicitudes-table td {
+  padding: 6px 8px; /* Padding reducido */
+  vertical-align: middle;
+}
+
+.celda-compacta {
+  padding: 6px 8px !important;
+  font-size: 0.85rem;
+}
+
+/* Contenedor de tabla más compacto */
+.table-container {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+/* ===== ACCIONES COMPACTAS ===== */
+.acciones-compactas {
+  display: flex;
+  gap: 4px; /* Espacio reducido entre botones */
+  justify-content: center;
+}
+
+.btn-compact {
+  padding: 3px 6px !important; /* Botones más pequeños */
+  font-size: 12px !important;
+  min-width: 28px; /* Tamaño mínimo consistente */
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-edit.btn-compact {
+  background-color: #ffc107;
+  color: black;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.btn-delete.btn-compact {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* ===== ICONOS MÁS PEQUEÑOS ===== */
+.btn-compact::before {
+  font-size: 12px; /* Tamaño de icono reducido */
+}
+
+/* ===== FILAS MÁS COMPACTAS ===== */
+.solicitudes-table tr {
+  height: 35px; /* Altura fija para las filas */
+}
+
+.solicitudes-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* ===== HEADERS MÁS COMPACTOS ===== */
+.solicitudes-table th {
+  height: 40px; /* Altura reducida para headers */
+}
+
+/* ===== MEJORAS DE ESPACIADO EN PESTAÑAS ===== */
+.tab-content .solicitudes-section {
+  padding: 15px; /* Padding reducido */
+}
+
+/* ===== SCROLLBAR MÁS DELGADO ===== */
+.table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ===== ESTILOS PARA TEXTO COMPACTO ===== */
+.compact-text {
+  font-size: 0.85rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* ===== BADGES MÁS PEQUEÑOS ===== */
+.badge-count {
+  background: var(--unicauca-azul);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+/* ===== ESTADOS MÁS COMPACTOS ===== */
+.estado-item {
+  padding: 8px 10px !important; /* Padding reducido */
+  margin-bottom: 8px !important;
+}
+
+.estado-badge {
+  padding: 2px 8px !important;
+  font-size: 0.7rem !important;
+}
+
+/* ===== RESPONSIVE PARA TABLAS COMPACTAS ===== */
+@media (max-width: 768px) {
+  .solicitudes-table {
+    font-size: 0.8rem;
+  }
+  
+  .solicitudes-table th,
+  .solicitudes-table td {
+    padding: 4px 6px;
+  }
+  
+  .celda-compacta {
+    padding: 4px 6px !important;
+  }
+  
+  .btn-compact {
+    padding: 2px 4px !important;
+    font-size: 10px !important;
+    min-width: 24px;
+    height: 18px;
+  }
+  
+  .solicitudes-table tr {
+    height: 32px;
+  }
+}
+
+/* ===== EFECTOS HOVER MÁS SUTILES ===== */
+.solicitudes-table tr {
+  transition: background-color 0.15s ease;
+}
+
+.solicitudes-table tr:hover {
+  background-color: #f1f3f5;
+}
+
+/* ===== BORDES MÁS SUTILES ===== */
+.solicitudes-table {
+  border: 1px solid #e9ecef;
+}
+
+.solicitudes-table th,
+.solicitudes-table td {
+  border: 1px solid #dee2e6;
+}
+
+/* Agregar al final de App.css */
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: white;
+  margin-left: auto;
+  padding-right: 20px;
+}
+
+.user-info span {
+  margin-bottom: 5px;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Ajustar el container del header para acomodar la info de usuario */
+.header-unicauca .container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* ===== COLORES ALTERNOS PARA FILAS ===== */
+.solicitudes-table tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.solicitudes-table tr:nth-child(even):hover {
+  background-color: #f1f3f5;
+}
+.btn-primary:disabled {
+  background-color: #ccc;   /* gris claro */
+  color: #666;              /* texto gris */
+  cursor: not-allowed;      /* cambia el puntero */
+  opacity: 0.7;
+}
+.btn-new-solicitud {
+  background-color: var(--color-accion-nuevo);
+color: white;
+padding: 12px 24px;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+font-size: 16px;
+transition: background-color 0.3s;
+font-family: var(--font-texto);
+font-weight: 600;
+}
+
+.btn-new-solicitud:hover {
+background-color: #096800; /* Un azul ligeramente más oscuro que el azul claro de Unicauca */
+transform: translateY(-2px);
+box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-new-solicitud:disabled {
+background-color: #ccc;
+color: #666;
+cursor: not-allowed;
+opacity: 0.7;
+}
+
+.btn-new-solicitud .btn-icon {
+  color: white !important;
+}
