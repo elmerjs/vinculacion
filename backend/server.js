@@ -57,6 +57,9 @@ app.get('/api/solicitudes/depto/:depto_id', async (req, res) => {
   }
 });
 
+
+
+
 // a) Crear nueva solicitud
 app.post('/api/solicitudes', async (req, res) => {
   // Lógica para insertar
@@ -185,6 +188,8 @@ app.post('/api/solicitudes/cargar-desde-anterior', async (req, res) => {
   }
 });
 
+
+
 // Obtener estado de envío por departamento y período
 app.get('/api/departamento/estado-envio/:depto_id', async (req, res) => {
   try {
@@ -192,17 +197,19 @@ app.get('/api/departamento/estado-envio/:depto_id', async (req, res) => {
     const { periodo } = req.query;
 
     const [rows] = await db.execute(
-      `SELECT DISTINCT 
-          dp.dp_estado_catedra AS catedra, 
-          dp.dp_estado_ocasional AS ocasional, 
-          dp.dp_estado_total AS total,
-          dp.dp_fecha_envio AS fechaUltimoEnvio
-       FROM depto_periodo dp
-       JOIN solicitudes s 
-         ON s.anio_semestre = dp.periodo 
-        AND s.departamento_id = dp.fk_depto_dp
-       WHERE dp.fk_depto_dp = ? AND dp.periodo = ?`,
-      [depto_id, periodo]
+      `SELECT 
+      dp.dp_estado_catedra AS catedra, 
+      dp.dp_estado_ocasional AS ocasional, 
+      dp.dp_estado_total AS total,
+      dp.dp_fecha_envio AS fechaUltimoEnvio,
+      COUNT(s.id_solicitud) AS totalSolicitudes
+   FROM depto_periodo dp
+   LEFT JOIN solicitudes s 
+     ON s.anio_semestre = dp.periodo 
+    AND s.departamento_id = dp.fk_depto_dp
+   WHERE dp.fk_depto_dp = ? AND dp.periodo = ?
+   GROUP BY dp.dp_estado_catedra, dp.dp_estado_ocasional, dp.dp_estado_total, dp.dp_fecha_envio`,
+  [depto_id, periodo]
     );
 
     if (rows.length > 0) {
@@ -221,8 +228,110 @@ app.get('/api/departamento/estado-envio/:depto_id', async (req, res) => {
 });
 
 
+//
 
+// ... (Tus importaciones y middlewares) ...
 
+// Nueva ruta para actualizar el estado de los períodos de forma individual
+app.put('/api/periodos/update-estado', async (req, res) => {
+  const { depto_id, periodo, tipo, estado } = req.body;
+  
+  if (!depto_id || !periodo || !tipo) {
+    return res.status(400).json({ success: false, error: 'Faltan parámetros en la solicitud.' });
+  }
+
+  // Determinar la columna a actualizar
+  let columna;
+  if (tipo === 'ocasional') {
+    columna = 'dp_estado_ocasional';
+  } else if (tipo === 'catedra') {
+    columna = 'dp_estado_catedra';
+  } else {
+    return res.status(400).json({ success: false, error: 'Tipo de docente inválido.' });
+  }
+
+  try {
+    const estadoValor = estado === 'ce' ? 'ce' : null;
+
+    const [result] = await db.execute(
+      `UPDATE depto_periodo SET ${columna} = ? WHERE fk_depto_dp = ? AND periodo = ?`,
+      [estadoValor, depto_id, periodo]
+    );
+
+    if (result.affectedRows > 0) {
+      res.json({ success: true, message: `Estado de ${tipo} actualizado.` });
+    } else {
+      res.status(404).json({ success: false, error: 'No se encontró un registro para actualizar.' });
+    }
+  } catch (error) {
+    console.error('Error al actualizar el estado:', error);
+    res.status(500).json({ success: false, error: 'Error interno del servidor.' });
+  }
+});
+
+const manejarCambioEstadoGeneral = async (nuevo_estado) => {
+    // Si el nuevo estado es 1 (enviado), se requiere que los otros dos estén cerrados.
+    if (nuevo_estado === 1 && (estadoEnvio?.ocasional !== 'ce' || estadoEnvio?.catedra !== 'ce')) {
+      alert("Debes cerrar los períodos de Docentes Ocasionales y Cátedra antes de enviar el estado general.");
+      return;
+    }
+
+    try {
+        const response = await fetch('http://192.168.42.175:5000/api/departamento/actualizar-estado-total', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                departamento_id: departamentoId,
+                periodo: periodoSeleccionado,
+                nuevo_estado: nuevo_estado // Este valor será 1 o null
+            })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            cargarEstadoEnvio(); // Recargar el estado para que se actualice la UI
+            alert(data.message);
+        } else {
+            alert(data.message);
+        }
+    } catch (error) {
+        console.error('Error al actualizar el estado total:', error);
+        alert('Error: ' + error.message);
+    }
+};
+// Agrega esta ruta en tu archivo server.js
+// Agrega esta ruta en tu archivo server.js
+app.put('/api/departamento/actualizar-estado-total', async (req, res) => {
+    const { departamento_id, periodo, nuevo_estado } = req.body;
+
+    if (!departamento_id || !periodo || nuevo_estado === undefined) {
+        return res.status(400).json({ success: false, message: 'Faltan parámetros en la solicitud.' });
+    }
+
+    try {
+        // CORRECCIÓN: La base de datos ahora guardará 1 o null, no 'ce'.
+        const estadoDB = (nuevo_estado === 1) ? 1 : null;
+        
+        const query = `
+            UPDATE depto_periodo
+            SET dp_estado_total = ?
+            WHERE fk_depto_dp = ? AND periodo = ?
+        `;
+
+        const [result] = await db.execute(query, [estadoDB, departamento_id, periodo]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'No se encontró el registro para actualizar.' });
+        }
+
+        const mensaje = (nuevo_estado === 1) ? 'Período enviado a Facultad correctamente.' : 'Período reabierto correctamente.';
+        res.json({ success: true, message: mensaje });
+
+    } catch (error) {
+        console.error('Error al actualizar el estado total:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+    }
+});
 
 //verificar si hay datos
 // Obtener cantidad de solicitudes para un departamento y periodo

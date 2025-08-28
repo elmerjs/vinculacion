@@ -84,6 +84,49 @@ const handleUpdate = async (id, updatedData) => {
         alert('Error de conexión con el servidor.');
     }
 };
+
+//funcion para manejar  cambio de estado
+const manejarCambioEstado = async (tipo) => {
+  const isCerrado = estadoEnvio[tipo] === 'ce';
+  const nuevoEstado = isCerrado ? null : 'ce';
+
+  if (window.confirm(`¿Estás seguro de que quieres ${isCerrado ? 'ABRIR' : 'CERRAR'} el período de ${tipo}?`)) {
+    try {
+      setLoading(true);
+      const url = `http://192.168.42.175:5000/api/periodos/update-estado`;
+      
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          depto_id: departamentoId,
+          periodo: periodoSeleccionado,
+          tipo: tipo,
+          estado: nuevoEstado,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar el estado del período.');
+      }
+
+      await response.json();
+      console.log(`Estado del período de ${tipo} actualizado a ${nuevoEstado}`);
+      
+      // Recargar el estado general para reflejar el cambio en la interfaz
+      // CAMBIO AQUÍ: Llamas a las funciones que sí tienes definidas.
+      cargarEstadoEnvio();
+      cargarSolicitudes(); // No necesitas pasarle los parámetros aquí.
+
+    } catch (error) {
+      console.error('Error al cambiar el estado:', error);
+      alert('Hubo un error al intentar cambiar el estado. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  }
+};
+
   // Función para generar períodos (MANTENIDA)
   const generarPeriodos = () => {
     const periodos = [];
@@ -260,7 +303,37 @@ const cargarDesdeAnterior = async () => {
       alert('Error: ' + error.message);
     }
   };
+//funcion para cambiar estado general
+  const manejarCambioEstadoGeneral = async (nuevo_estado) => {
+    // Si el nuevo estado es 'ce' (enviado), se requiere que los otros dos estén cerrados.
+    if (nuevo_estado === 'ce' && (estadoEnvio?.ocasional !== 'ce' || estadoEnvio?.catedra !== 'ce')) {
+      alert("Debes cerrar los períodos de Docentes Ocasionales y Cátedra antes de enviar el estado general.");
+      return;
+    }
 
+    try {
+        const response = await fetch('http://192.168.42.175:5000/api/departamento/actualizar-estado-total', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                departamento_id: departamentoId,
+                periodo: periodoSeleccionado,
+                nuevo_estado: nuevo_estado
+            })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            cargarEstadoEnvio(); // Recargar el estado para que se actualice la UI
+            alert(data.message);
+        } else {
+            alert(data.message);
+        }
+    } catch (error) {
+        console.error('Error al actualizar el estado total:', error);
+        alert('Error: ' + error.message);
+    }
+};
   // FUNCIONES DE LOGIN (NUEVAS)
   const handleLogin = (userData) => {
     setUser(userData);
@@ -350,9 +423,7 @@ const cargarDesdeAnterior = async () => {
 >
   <span className="btn-icon">🔄</span> Cargar desde período anterior
 </button>
-            <button className="btn-secondary">
-              <span className="btn-icon">➕</span> Nueva Solicitud
-            </button>
+           
           </div>
         </div>
 
@@ -380,14 +451,14 @@ const cargarDesdeAnterior = async () => {
                   <div className="solicitudes-section">
                     {estadoEnvio.ocasional !== 'ce' && (
                       <div className="button-new-solicitud">
-        <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
-                          <span className="btn-icon">+</span> Nueva Solicitud
+                          <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
+                            <span className="btn-icon">+</span> Nueva Solicitud
                         </button>
                       </div>
                     )}
                     {solicitudesOcasionales.length === 0 ? (
                       <div className="empty-state">
-                        <p>No hay docentes ocasionales para el período {periodoSeleccionado}</p>
+                        <p>No hay docent  es ocasionales para el período {periodoSeleccionado}</p>
                       </div>
                     ) : (
                       <div className="table-container">
@@ -543,42 +614,70 @@ const cargarDesdeAnterior = async () => {
             <div className="envio-panel">
               <h3>Envío a Facultad</h3>
               
-              <div className="estado-envio">
-                <div className="estado-item">
-                  <span className="estado-label">Docentes Ocasionales:</span>
-                  <span className={`estado-badge ${estadoEnvio.ocasional ? 'completado' : 'pendiente'}`}>
-                    {estadoEnvio.ocasional ? 'Completado' : 'Pendiente'}
-                  </span>
-                </div>
-                
-                <div className="estado-item">
-                  <span className="estado-label">Docentes Cátedra:</span>
-                  <span className={`estado-badge ${estadoEnvio.catedra ? 'completado' : 'pendiente'}`}>
-                    {estadoEnvio.catedra ? 'Completado' : 'Pendiente'}
-                  </span>
-                </div>
-                
-                <div className="estado-item">
-                  <span className="estado-label">Estado General:</span>
-                  <span className={`estado-badge ${estadoEnvio.total ? 'enviado' : 'pendiente'}`}>
-                    {estadoEnvio.total ? 'Enviado' : 'Pendiente'}
-                  </span>
-                </div>
-                
-                {estadoEnvio.fechaUltimoEnvio && (
-                  <div className="ultimo-envio">
-                    <p>Último envío: {new Date(estadoEnvio.fechaUltimoEnvio).toLocaleDateString()}</p>
-                  </div>
-                )}
-              </div>
+           <div className="estado-envio">
+    {/* Docentes Ocasionales */}
+<div className="estado-item">
+  <span className="estado-label">Docentes Ocasionales:</span>
+  <div className="toggle-switch-container">
+    <label className="switch">
+      <input 
+        type="checkbox" 
+        checked={estadoEnvio?.ocasional === 'ce'} 
+        onChange={() => manejarCambioEstado('ocasional')}
+      />
+      <span className="slider round">
+        <span className="slider-text">
+          {estadoEnvio?.ocasional === 'ce' ? 'Cerrado' : 'Abierto'}
+        </span>
+      </span>
+    </label>
+  </div>
+</div>
+
+<div className="estado-item">
+  <span className="estado-label">Docentes Cátedra:</span>
+  <div className="toggle-switch-container">
+    <label className="switch">
+      <input 
+        type="checkbox" 
+        checked={estadoEnvio?.catedra === 'ce'} 
+        onChange={() => manejarCambioEstado('catedra')}
+      />
+      <span className="slider round">
+        <span className="slider-text">
+          {estadoEnvio?.catedra === 'ce' ? 'Cerrado' : 'Abierto'}
+        </span>
+      </span>
+    </label>
+  </div>
+</div>
+      {/* Estado General (Ahora un interruptor) */}
+<div className="estado-item">
+  <span className="estado-label">Estado General:</span>
+  <div className="toggle-switch-container">
+    <label className="switch">
+      <input
+        type="checkbox"
+        checked={estadoEnvio?.total === 1} // Verifica si el valor es 1
+        onChange={(e) => manejarCambioEstadoGeneral(e.target.checked ? 1 : null)} // Envía 1 o null
+        disabled={estadoEnvio?.ocasional !== 'ce' || estadoEnvio?.catedra !== 'ce'}
+      />
+      <span className="slider round">
+        <span className="slider-text">
+          {estadoEnvio?.total === 1 ? 'Enviado ✅' : 'Pendiente'} 
+        </span>
+      </span>
+    </label>
+  </div>
+</div>
+    {estadoEnvio?.fechaUltimoEnvio && (
+      <div className="ultimo-envio">
+        <p>Último envío: {new Date(estadoEnvio.fechaUltimoEnvio).toLocaleDateString()}</p>
+      </div>
+    )}
+  </div>
               
-              <button 
-                onClick={enviarAFacultad} 
-                className="btn-enviar-facultad"
-                disabled={estadoEnvio.total === 1}
-              >
-                {estadoEnvio.total ? '✅ Ya enviado' : '📤 Enviar a Facultad'}
-              </button>
+        
               
               <div className="info-adicional">
                 <h4>Información importante:</h4>
