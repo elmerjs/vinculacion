@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Modal.css'; // Asegúrate de tener los estilos para el modal
+import './Modal.css';
 
 const ModalImprimirOficio = ({ isOpen, onClose, user, departamentoId, periodoSeleccionado, estadoEnvio, solicitudes }) => {
   const [numOficio, setNumOficio] = useState('');
@@ -9,18 +9,15 @@ const ModalImprimirOficio = ({ isOpen, onClose, user, departamentoId, periodoSel
   const [fechaActa, setFechaActa] = useState('');
   const [folios, setFolios] = useState({
     folios1: 1,
-    folios2: solicitudes.length, // Folios de los formatos FOR 45
+    folios2: solicitudes.length,
     folios3: 0,
     total: 1 + solicitudes.length
   });
 
-  const [trdDepto, setTrdDepto] = useState('');
-
   // Efecto para precargar los datos del formulario al abrir el modal
   useEffect(() => {
     if (isOpen) {
-      // Precarga los datos del estado
-      setNumOficio(estadoEnvio?.num_oficio_depto || '');
+      // Precarga de otros datos
       setJefeDepto(user?.u_nombre_en_cargo || 'N/A');
       setNumActa(estadoEnvio?.dp_acta_periodo || '');
       setFechaActa(estadoEnvio?.dp_fecha_acta || '');
@@ -29,25 +26,34 @@ const ModalImprimirOficio = ({ isOpen, onClose, user, departamentoId, periodoSel
       const today = new Date().toISOString().split('T')[0];
       setFechaOficio(today);
 
-      // Calcula los folios por defecto
-      const foliosCalculados = {
+      // Precarga los folios por defecto
+      const total = 1 + solicitudes.length;
+      setFolios({
         folios1: 1,
         folios2: solicitudes.length,
         folios3: 0,
-      };
-      const total = foliosCalculados.folios1 + foliosCalculados.folios2 + foliosCalculados.folios3;
-      setFolios({ ...foliosCalculados, total: total });
+        total: total
+      });
 
-      // TODO: Aquí debes llamar a tu API para obtener el TRD del departamento
-      // Por ahora, asumimos que obtienes el valor 'TRD-DEPARTAMENTO'
-      // O puedes crear un endpoint en tu backend que retorne este dato.
-      // fetch(`http://192.168.42.175:5000/api/departamento/trd/${departamentoId}`)
-      //   .then(res => res.json())
-      //   .then(data => setTrdDepto(data.trd))
-      //   .catch(err => console.error(err));
-      setTrdDepto('TRD-DEPTO'); // Usamos un valor de ejemplo
+      // ➡️ NUEVA LÓGICA: Llamar a la API para obtener el TRD del departamento
+      const fetchTrd = async () => {
+        try {
+          const response = await fetch(`http://192.168.42.175:5000/api/departamento/trd/${departamentoId}`);
+          if (!response.ok) {
+            throw new Error('Error al obtener el TRD del departamento.');
+          }
+          const data = await response.json();
+          // Asigna el TRD del departamento al estado de numOficio
+          setNumOficio(data.trd + '/');
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error al cargar el número de oficio. Por favor, recargue la página.');
+        }
+      };
+
+      fetchTrd(); // Ejecuta la función de obtención del TRD
     }
-  }, [isOpen, estadoEnvio, solicitudes, user]);
+  }, [isOpen, departamentoId, estadoEnvio, solicitudes, user]);
 
   const updateFoliosTotal = (e) => {
     const { name, value } = e.target;
@@ -59,13 +65,12 @@ const ModalImprimirOficio = ({ isOpen, onClose, user, departamentoId, periodoSel
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validar que los campos obligatorios no estén vacíos
     if (!numOficio || !fechaOficio || !jefeDepto || !numActa || !fechaActa) {
       alert("Por favor, completa todos los campos requeridos.");
       return;
     }
 
-    // Construir la URL para el script PHP
+    // Esta lógica ya no se usará si migras al backend de Node.js
     const url = `http://192.168.42.175/temporalesc/oficio_depto.php?` +
       `departamento_id=${departamentoId}&` +
       `anio_semestre=${periodoSeleccionado}&` +
@@ -77,9 +82,8 @@ const ModalImprimirOficio = ({ isOpen, onClose, user, departamentoId, periodoSel
       `folios=${folios.total}&` +
       `nombre_fac=${encodeURIComponent(user?.nombre_facultad || 'N/A')}`;
 
-    // Abrir una nueva pestaña para descargar el archivo
     window.open(url, '_blank');
-    onClose(); // Cerrar el modal después de la acción
+    onClose();
   };
 
   if (!isOpen) return null;

@@ -365,6 +365,23 @@ app.get('/api/solicitudes/count/:depto_id', async (req, res) => {
 });
 
 
+// ➡️ NUEVO ENDPOINT PARA OBTENER EL TRD DEL DEPARTAMENTO
+app.get('/api/departamento/trd/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = "SELECT trd_depto FROM deparmanentos WHERE PK_DEPTO = ?";
+        const [rows] = await db.execute(query, [id]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Departamento no encontrado.' });
+        }
+
+        res.json({ success: true, trd: rows[0].trd_depto });
+    } catch (error) {
+        console.error('Error al obtener el TRD del departamento:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+    }
+});
 
 app.listen(PORT, () => {
   console.log('Servidor corriendo en http://localhost:' + PORT);
