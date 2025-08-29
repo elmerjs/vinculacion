@@ -18,7 +18,8 @@ function App() {
     catedra: 0,
     fechaUltimoEnvio: null
   });
-  const [puedeCargarAnterior, setPuedeCargarAnterior] = useState(false);
+  const [puedeCargarOcasionales, setPuedeCargarOcasionales] = useState(false);
+  const [puedeCargarCatedra, setPuedeCargarCatedra] = useState(false);
 
   const [solicitudAEditar, setSolicitudAEditar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,17 +40,36 @@ function App() {
   }, []);
 //funicon para verificar si hay datos
 const verificarPuedeCargarAnterior = async () => {
-  try {
-    const response = await fetch(
-      `http://192.168.42.175:5000/api/solicitudes/count/${departamentoId}?periodo=${periodoSeleccionado}`
-    );
-    const data = await response.json();
-    setPuedeCargarAnterior(data.total === 0);
-  } catch (error) {
-    console.error('Error verificando solicitudes:', error);
-    setPuedeCargarAnterior(false);
-  }
-};
+    if (!departamentoId || !periodoSeleccionado) return;
+
+    try {
+      setLoading(true);
+      // ➡️ Ahora se hacen dos llamadas a la API, filtrando por tipo
+      const urlOcasionales = `http://192.168.42.175:5000/api/solicitudes/count/${departamentoId}?periodo=${periodoSeleccionado}&tipo=ocasional`;
+      const urlCatedra = `http://192.168.42.175:5000/api/solicitudes/count/${departamentoId}?periodo=${periodoSeleccionado}&tipo=catedra`;
+
+      const [responseOcasionales, responseCatedra] = await Promise.all([
+        fetch(urlOcasionales),
+        fetch(urlCatedra)
+      ]);
+
+      const dataOcasionales = await responseOcasionales.json();
+      const dataCatedra = await responseCatedra.json();
+      
+      // ➡️ Se actualizan los estados de los botones de forma independiente
+      setPuedeCargarOcasionales(dataOcasionales.total_solicitudes === 0);
+      setPuedeCargarCatedra(dataCatedra.total_solicitudes === 0);
+
+    } catch (error) {
+      console.error('Error al verificar solicitudes existentes:', error);
+      setPuedeCargarOcasionales(false);
+      setPuedeCargarCatedra(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
 // Función para abrir el modal de edición
 const handleEditClick = (solicitud) => {
@@ -241,8 +261,9 @@ const eliminarSolicitud = async (id) => {
 };
 
 
-const cargarDesdeAnterior = async () => {
+const cargarDesdeAnterior = async (tipo) => {
   try {
+    // ➡️ Lógica para calcular el período anterior
     const [año, semestre] = periodoSeleccionado.split('-');
     let periodoAnterior;
     
@@ -251,37 +272,35 @@ const cargarDesdeAnterior = async () => {
     } else {
       periodoAnterior = `${año}-1`;
     }
-    
+    // ⬅️ Fin de la lógica
+
     const response = await fetch('http://192.168.42.175:5000/api/solicitudes/cargar-desde-anterior', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         departamento_id: departamentoId,
         periodo_actual: periodoSeleccionado,
-        periodo_anterior: periodoAnterior
+        periodo_anterior: periodoAnterior,
+        tipo: tipo
       })
     });
     
     const data = await response.json();
     alert(data.message);
 
-    // Recarga los datos
     cargarSolicitudes();
-
-    // Aquí actualizas el estado para desactivar el botón inmediatamente
-    setPuedeCargarAnterior(false);
-
-    // Y además, verificas el conteo en la base por si acaso
-    verificarPuedeCargarAnterior();
+    
+    if (tipo === 'ocasional') {
+        setPuedeCargarOcasionales(false);
+    } else if (tipo === 'catedra') {
+        setPuedeCargarCatedra(false);
+    }
 
   } catch (error) {
     console.error('Error cargando desde período anterior:', error);
     alert('Error: ' + error.message);
   }
 };
-
 
   const enviarAFacultad = async () => {
     try {
@@ -415,16 +434,7 @@ const cargarDesdeAnterior = async () => {
             </select>
           </div>
 
-          <div className="controls-buttons">
-            <button 
-              onClick={cargarDesdeAnterior} 
-              className="btn-primary"
-              disabled={!puedeCargarAnterior}
-            >
-              <span className="btn-icon">🔄</span> Cargar desde período anterior
-            </button>
-                      
-          </div>
+      
         </div>
 
         {/* CONTENIDO PRINCIPAL - MANTENIDO */}
@@ -450,19 +460,19 @@ const cargarDesdeAnterior = async () => {
                 {tabActiva === 'ocasionales' ? (
                   <div className="solicitudes-section">
                     {estadoEnvio.ocasional !== 'ce' && (
-                      
-                      
+                                       
                       
                       
                      
                       <div className="controls-buttons">
-            <button 
-              onClick={cargarDesdeAnterior} 
-              className="btn-primary"
-              disabled={!puedeCargarAnterior}
-            >
-              <span className="btn-icon">🔄</span> Cargar desde período anterior
-            </button>
+                 <button 
+  onClick={() => cargarDesdeAnterior('ocasional')} 
+  className="btn-secondary"
+  // ➡️ CAMBIO AQUÍ
+  disabled={!puedeCargarOcasionales || solicitudesOcasionales.length > 0} 
+>
+  <span className="btn-icon">🔄</span> Cargar desde período anterior
+</button>
              <div className="button-new-solicitud">
                           <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
                             <span className="btn-icon">+</span> Nueva Solicitud
@@ -550,13 +560,14 @@ const cargarDesdeAnterior = async () => {
                       
                       
   <div className="controls-buttons">
-            <button 
-              onClick={cargarDesdeAnterior} 
-              className="btn-primary"
-              disabled={!puedeCargarAnterior}
-            >
-              <span className="btn-icon">🔄</span> Cargar desde período anterior
-            </button>
+          <button 
+          onClick={() => cargarDesdeAnterior('catedra')} 
+          className="btn-secondary"
+          // ➡️ CAMBIO AQUÍ
+          disabled={!puedeCargarCatedra || solicitudesCatedra.length > 0} 
+        >
+          <span className="btn-icon">🔄</span> Cargar desde período anterior
+        </button>
                <div className="button-new-solicitud">
           <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
                           <span className="btn-icon"> + </span> Nueva Solicitud

@@ -154,15 +154,16 @@ app.delete('/api/solicitudes/:id', async (req, res) => {
   }
 });
 // Agregar en server.js
+// Ruta para cargar solicitudes desde un período anterior, ahora por tipo de docente
 app.post('/api/solicitudes/cargar-desde-anterior', async (req, res) => {
   try {
-    const { departamento_id, periodo_actual, periodo_anterior } = req.body;
+    const { departamento_id, periodo_actual, periodo_anterior, tipo } = req.body;
     
-    // 1. Obtener solicitudes del período anterior
+    // 1. Obtener solicitudes del período anterior, filtrando por tipo de docente
     const [solicitudesAnteriores] = await db.execute(
       `SELECT * FROM solicitudes 
-       WHERE departamento_id = ? AND anio_semestre = ?`,
-      [departamento_id, periodo_anterior]
+       WHERE departamento_id = ? AND anio_semestre = ? AND tipo_docente = ?`,
+      [departamento_id, periodo_anterior, tipo] // ➡️ Se añade el filtro 'tipo'
     );
     
     // 2. Insertar copias para el nuevo período
@@ -180,10 +181,11 @@ app.post('/api/solicitudes/cargar-desde-anterior', async (req, res) => {
     
     res.json({ 
       success: true, 
-      message: `✅ ${solicitudesAnteriores.length} solicitudes cargadas desde ${periodo_anterior}` 
+      message: `✅ ${solicitudesAnteriores.length} solicitudes de ${tipo} cargadas desde ${periodo_anterior}` 
     });
     
   } catch (error) {
+    console.error('Error al cargar desde período anterior:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -335,24 +337,32 @@ app.put('/api/departamento/actualizar-estado-total', async (req, res) => {
 
 //verificar si hay datos
 // Obtener cantidad de solicitudes para un departamento y periodo
+// Obtener cantidad de solicitudes para un departamento, periodo y tipo de docente
 app.get('/api/solicitudes/count/:depto_id', async (req, res) => {
   try {
     const { depto_id } = req.params;
-    const { periodo } = req.query;
+    const { periodo, tipo } = req.query; // ➡️ AHORA TAMBIÉN RECIBE EL PARÁMETRO 'TIPO'
 
-    const [rows] = await db.execute(
-      `SELECT COUNT(*) AS total 
-       FROM solicitudes 
-       WHERE departamento_id = ? AND anio_semestre = ?`,
-      [depto_id, periodo]
-    );
+    let query = `SELECT COUNT(*) AS total_solicitudes FROM solicitudes WHERE departamento_id = ? AND anio_semestre = ?`;
+    let params = [depto_id, periodo];
 
-    res.json({ total: rows[0].total });
+    if (tipo) {
+      query += ` AND tipo_docente = ?`;
+      params.push(tipo);
+    }
+
+    const [rows] = await db.execute(query, params);
+
+    res.json({
+      success: true,
+      total_solicitudes: rows[0].total_solicitudes,
+      message: '✅ Conteo de solicitudes exitoso'
+    });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Error al verificar solicitudes existentes:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor.' });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log('Servidor corriendo en http://localhost:' + PORT);
