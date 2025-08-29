@@ -1325,3 +1325,57 @@ input:checked + .slider .slider-text {
     cursor: not-allowed;
     opacity: 0.8;
 }
+/* ======================== */
+/* ESTILOS PARA EL TOOLTIP */
+/* ======================== */
+
+/* El contenedor principal debe tener 'position: relative' */
+/* Esto hace que el tooltip se posicione en relación a este elemento */
+.tooltip-container {
+    position: relative;
+    display: inline-block; /* O 'block' si quieres que ocupe todo el ancho */
+}
+
+/* El elemento del tooltip (el mensaje) */
+.tooltip-container .tooltip-text {
+    /* ➡️ Propiedades iniciales del tooltip */
+    visibility: hidden; /* Oculto por defecto */
+    opacity: 0;         /* Invisible por defecto */
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Transición suave */
+
+    /* ➡️ Posicionamiento del tooltip */
+    position: absolute; /* Es crucial para que se mueva en relación al padre */
+    z-index: 10;        /* Asegura que esté por encima de otros elementos */
+    bottom: 125%;       /* Lo posiciona encima del botón */
+    left: 50%;          /* Lo centra horizontalmente */
+    transform: translateX(-50%); /* Ajusta el centrado perfectamente */
+
+    /* ➡️ Estilos visuales del tooltip */
+    width: 250px;
+    background-color: #343a40; /* Fondo oscuro */
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para mejor visibilidad */
+}
+
+/* El triángulo que simula una flecha */
+.tooltip-container .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%; /* Lo coloca en la parte inferior del tooltip */
+    left: 50%;
+    margin-left: -5px; /* Centra el triángulo */
+    border-width: 5px;
+    border-style: solid;
+    border-color: #343a40 transparent transparent transparent;
+}
+
+/* Muestra el tooltip cuando el usuario pasa el mouse sobre el contenedor */
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}

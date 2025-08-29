@@ -364,6 +364,8 @@ app.get('/api/solicitudes/count/:depto_id', async (req, res) => {
   }
 });
 
+
+
 app.listen(PORT, () => {
   console.log('Servidor corriendo en http://localhost:' + PORT);
 });

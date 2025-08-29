@@ -4,6 +4,7 @@ import Login from './components/Login'; // Nuevo componente
 import ModalEdicion from './components/ModalEdicion';
 
 import { FaEdit, FaTrashAlt, FaRegSquare, FaDownload, FaFileAlt } from 'react-icons/fa'; // Asegúrate de tener estas importaciones
+import ModalImprimirOficio from './components/ModalImprimirOficio';
 
 function App() {
   const [solicitudes, setSolicitudes] = useState([]);
@@ -26,6 +27,8 @@ function App() {
   // ESTADO DE AUTENTICACIÓN
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  //para modal  oficio
+  const [isOficioModalOpen, setIsOficioModalOpen] = useState(false);
 
   // Verificar si hay sesión al cargar
   useEffect(() => {
@@ -68,8 +71,10 @@ const verificarPuedeCargarAnterior = async () => {
       setLoading(false);
     }
   };
-
-
+//funcion para modal oficio
+const imprimirOficio = () => {
+    setIsOficioModalOpen(true);
+};
 
 // Función para abrir el modal de edición
 const handleEditClick = (solicitud) => {
@@ -146,6 +151,8 @@ const manejarCambioEstado = async (tipo) => {
     }
   }
 };
+
+
 
   // Función para generar períodos (MANTENIDA)
   const generarPeriodos = () => {
@@ -675,12 +682,13 @@ const cargarDesdeAnterior = async (tipo) => {
     {/* Docentes Ocasionales */}
 <div className="estado-item">
   <span className="estado-label">Docentes Ocasionales:</span>
-  <div className="toggle-switch-container">
+  <div className="toggle-switch-container tooltip-container">
     <label className="switch">
       <input 
         type="checkbox" 
         checked={estadoEnvio?.ocasional === 'ce'} 
         onChange={() => manejarCambioEstado('ocasional')}
+        disabled={estadoEnvio?.total === 1}
       />
       <span className="slider round">
         <span className="slider-text">
@@ -688,17 +696,23 @@ const cargarDesdeAnterior = async (tipo) => {
         </span>
       </span>
     </label>
+    {estadoEnvio?.total === 1 && (
+      <span className="tooltip-text">
+        El proceso ha sido enviado a la facultad. No se pueden revertir los cierres.
+      </span>
+    )}
   </div>
 </div>
 
 <div className="estado-item">
   <span className="estado-label">Docentes Cátedra:</span>
-  <div className="toggle-switch-container">
+  <div className="toggle-switch-container tooltip-container">
     <label className="switch">
       <input 
         type="checkbox" 
         checked={estadoEnvio?.catedra === 'ce'} 
         onChange={() => manejarCambioEstado('catedra')}
+        disabled={estadoEnvio?.total === 1}
       />
       <span className="slider round">
         <span className="slider-text">
@@ -706,26 +720,46 @@ const cargarDesdeAnterior = async (tipo) => {
         </span>
       </span>
     </label>
+    {estadoEnvio?.total === 1 && (
+      <span className="tooltip-text">
+        El proceso ha sido enviado a la facultad. No se pueden revertir los cierres.
+      </span>
+    )}
   </div>
 </div>
       {/* Estado General (Ahora un interruptor) */}
 <div className="estado-item">
   <span className="estado-label">Estado General:</span>
-  <div className="toggle-switch-container">
-    <label className="switch">
-      <input
-        type="checkbox"
-        checked={estadoEnvio?.total === 1} // Verifica si el valor es 1
-        onChange={(e) => manejarCambioEstadoGeneral(e.target.checked ? 1 : null)} // Envía 1 o null
-        disabled={estadoEnvio?.ocasional !== 'ce' || estadoEnvio?.catedra !== 'ce'}
-      />
-      <span className="slider round">
-        <span className="slider-text">
-          {estadoEnvio?.total === 1 ? 'Enviado ✅' : 'Pendiente'} 
-        </span>
+<div className="toggle-switch-container tooltip-container">
+  <label className="switch">
+    <input
+      type="checkbox"
+      checked={estadoEnvio?.total === 1}
+      onChange={(e) => manejarCambioEstadoGeneral(e.target.checked ? 1 : null)}
+      disabled={estadoEnvio?.ocasional !== 'ce' || estadoEnvio?.catedra !== 'ce' || estadoEnvio?.total === 1}
+    />
+    <span className="slider round">
+      <span className="slider-text">
+        {estadoEnvio?.total === 1 ? 'Enviado ✅' : 'Pendiente'}
       </span>
-    </label>
-  </div>
+    </span>
+  </label>
+  {estadoEnvio?.total === 1 && (
+    <span className="tooltip-text">
+      La solicitud ha sido enviada a la facultad. No se puede revertir.
+    </span>
+  )}
+</div>
+</div>
+{/* ➡️ Botón "Imprimir Oficio" */}
+<div className="boton-imprimir-container">
+  <button
+    className="btn-primary"
+    onClick={imprimirOficio}
+    disabled={estadoEnvio?.total !== 1}
+  >
+    Imprimir Oficio
+  </button>
 </div>
     {estadoEnvio?.fechaUltimoEnvio && (
       <div className="ultimo-envio">
@@ -734,7 +768,7 @@ const cargarDesdeAnterior = async (tipo) => {
     )}
   </div>
               
-        
+       
               
               <div className="info-adicional">
                 <h4>Información importante:</h4>
@@ -754,6 +788,18 @@ const cargarDesdeAnterior = async (tipo) => {
       solicitud={solicitudAEditar}
       onUpdate={handleUpdate}
     />
+
+
+<ModalImprimirOficio
+  isOpen={isOficioModalOpen}
+  onClose={() => setIsOficioModalOpen(false)}
+  user={user}
+  departamentoId={departamentoId}
+  periodoSeleccionado={periodoSeleccionado}
+  estadoEnvio={estadoEnvio}
+  solicitudes={solicitudes}
+/>
+
       <footer className="footer-unicauca">
         <p>Universidad del Cauca - #PatrimonioDeTodos</p>
 
