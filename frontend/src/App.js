@@ -442,18 +442,32 @@ const cargarDesdeAnterior = async (tipo) => {
           <div className="left-column">
             <div className="tabs-container">
               <div className="tabs-header">
+                 <button
+                    className={`tab ${tabActiva === 'ocasionales' ? 'active' : ''} ${
+                      // ➡️ Lógica para el color de fondo:
+                      tabActiva !== 'ocasionales' && estadoEnvio?.ocasional !== 'ce'
+                        ? 'not-sent'
+                        : tabActiva !== 'ocasionales' && estadoEnvio?.ocasional === 'ce'
+                        ? 'sent'
+                        : ''
+                    }`}
+                    onClick={() => setTabActiva('ocasionales')}
+                  >
+                    Docentes Ocasionales <span className="badge-count">{solicitudesOcasionales.length}</span>
+                  </button>
                 <button
-                  className={`tab ${tabActiva === 'ocasionales' ? 'active' : ''}`}
-                  onClick={() => setTabActiva('ocasionales')}
-                >
-                  Docentes Ocasionales <span className="badge-count">{solicitudesOcasionales.length}</span>
-                </button>
-                <button
-                  className={`tab ${tabActiva === 'catedra' ? 'active' : ''}`}
-                  onClick={() => setTabActiva('catedra')}
-                >
-                  Docentes Cátedra <span className="badge-count">{solicitudesCatedra.length}</span>
-                </button>
+                    className={`tab ${tabActiva === 'catedra' ? 'active' : ''} ${
+                      // ➡️ Lógica para el color de fondo:
+                      tabActiva !== 'catedra' && estadoEnvio?.catedra !== 'ce'
+                        ? 'not-sent'
+                        : tabActiva !== 'catedra' && estadoEnvio?.catedra === 'ce'
+                        ? 'sent'
+                        : ''
+                    }`}
+                    onClick={() => setTabActiva('catedra')}
+                  >
+                    Docentes Cátedra <span className="badge-count">{solicitudesCatedra.length}</span>
+                  </button>
               </div>
 
               <div className="tab-content">
@@ -465,14 +479,13 @@ const cargarDesdeAnterior = async (tipo) => {
                       
                      
                       <div className="controls-buttons">
-                 <button 
-  onClick={() => cargarDesdeAnterior('ocasional')} 
-  className="btn-secondary"
-  // ➡️ CAMBIO AQUÍ
-  disabled={!puedeCargarOcasionales || solicitudesOcasionales.length > 0} 
->
-  <span className="btn-icon">🔄</span> Cargar desde período anterior
-</button>
+                   <button 
+                onClick={() => cargarDesdeAnterior('ocasional')} 
+                className="btn-secondary" /* ➡️ CAMBIO AQUÍ */
+                disabled={!puedeCargarOcasionales || solicitudesOcasionales.length > 0} 
+              >
+                <span className="btn-icon">🔄</span> Cargar desde período anterior
+              </button>
              <div className="button-new-solicitud">
                           <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
                             <span className="btn-icon">+</span> Nueva Solicitud
@@ -522,8 +535,8 @@ const cargarDesdeAnterior = async (tipo) => {
                                 <td className="celda-compacta">{sol.cedula}</td>
                                 <td className="celda-compacta">{sol.tipo_dedicacion || '-'}</td>
                                 <td className="celda-compacta">{sol.tipo_dedicacion_r || '-'}</td>
-                                <td className="celda-compacta">{sol.anexa_hv_docente_nuevo === 'si' ? '✅' : '❌'}</td>
-                                <td className="celda-compacta">{sol.actualiza_hv_antiguo === 'si' ? '✅' : '❌'}</td>
+                                <td style={{ textAlign: 'center' }}  className="celda-compacta">{sol.anexa_hv_docente_nuevo === 'si' ? '✅' : '-'}</td>
+                                <td style={{ textAlign: 'center' }}  className="celda-compacta">{sol.actualiza_hv_antiguo === 'si' ? '✅' : '-'}</td>
                                 {estadoEnvio.ocasional === 'ce' && (
                                   <>
                                     <td className="celda-compacta"><FaRegSquare /></td>
@@ -559,15 +572,14 @@ const cargarDesdeAnterior = async (tipo) => {
                       
                       
                       
-  <div className="controls-buttons">
-          <button 
-          onClick={() => cargarDesdeAnterior('catedra')} 
-          className="btn-secondary"
-          // ➡️ CAMBIO AQUÍ
-          disabled={!puedeCargarCatedra || solicitudesCatedra.length > 0} 
-        >
-          <span className="btn-icon">🔄</span> Cargar desde período anterior
-        </button>
+          <div className="controls-buttons">
+             <button 
+            onClick={() => cargarDesdeAnterior('catedra')} 
+            className="btn-secondary" /* ➡️ CAMBIO AQUÍ */
+            disabled={!puedeCargarCatedra || solicitudesCatedra.length > 0} 
+          >
+            <span className="btn-icon">🔄</span> Cargar desde período anterior
+          </button>
                <div className="button-new-solicitud">
           <button className="btn-new-solicitud"> {/* CAMBIO AQUI */}
                           <span className="btn-icon"> + </span> Nueva Solicitud
@@ -619,8 +631,8 @@ const cargarDesdeAnterior = async (tipo) => {
                                 <td>{sol.cedula}</td>
                                 <td>{sol.horas || '-'}</td>
                                 <td>{sol.horas_r || '-'}</td>
-                                <td className="celda-compacta">{sol.anexa_hv_docente_nuevo === 'si' ? '✅' : '❌'}</td>
-                                <td className="celda-compacta">{sol.actualiza_hv_antiguo === 'si' ? '✅' : '❌'}</td>
+                                <td style={{ textAlign: 'center' }}  className="celda-compacta">{sol.anexa_hv_docente_nuevo === 'si' ? '✅' : '-'}</td>
+                                <td style={{ textAlign: 'center' }} className="celda-compacta">{sol.actualiza_hv_antiguo === 'si' ? '✅' : '-'}</td>
                                 {estadoEnvio.catedra === 'ce' && (
                                   <>
                                     <td className="celda-compacta"><FaRegSquare /></td>

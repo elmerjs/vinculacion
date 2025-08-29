@@ -608,6 +608,16 @@
   padding: 20px;
 }
 
+/* Nuevo estilo para la pestaña inactiva que aún no se ha enviado */
+.tab.not-sent {
+    background-color: #ffe6e6; /* Un rojo suave */
+}
+
+/* Mantener el sombreado normal para el inactivo que ya se envió */
+.tab.sent {
+    background-color: #f8f9fa; /* Color de fondo normal de la cabecera */
+}
+
 /* ===== MEJORAS PARA TABLAS ===== */
 .solicitudes-table {
   width: 100%;
@@ -1093,7 +1103,18 @@
   
   .celda-compacta {
     padding: 4px 6px !important;
+    
   }
+/* ... otros estilos ... */
+
+.celda-compacta {
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 8px;
+    
+    /* ➡️ Fuerza el centrado del texto */
+    text-align: center !important;
+}
   
   .btn-compact {
     padding: 2px 4px !important;
@@ -1275,4 +1296,32 @@ input:not(:checked) + .slider .slider-text {
 /* Posición del texto cuando está CERRADO */
 input:checked + .slider .slider-text {
   left: 15px;
+}
+
+.btn-secondary {
+    /* Estilos base del botón */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* ➡️ Estilo para el botón cuando está HABILITADO */
+.btn-secondary:not([disabled]) {
+    background-color: #007bff; /* Color azul, más llamativo que el gris */
+}
+
+.btn-secondary:not([disabled]):hover {
+    background-color: #0056b3; /* Un azul más oscuro al pasar el mouse */
+}
+
+/* ➡️ Estilo para el botón cuando está DESHABILITADO */
+.btn-secondary[disabled] {
+    background-color: #dee2e6;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.8;
 }
